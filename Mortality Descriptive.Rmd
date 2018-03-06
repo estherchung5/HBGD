@@ -81,7 +81,6 @@ provide <- readRDS("prvd.rds")
   hist(tanzchild$AGEDTH)
   
 # ZVITAMBO
-  table(zvit$DEATH)
   summary(zvit$AGEDTH)
   hist(zvit$AGEDTH)
   table(zvit$CAUSEDTH)
@@ -91,5 +90,5 @@ provide <- readRDS("prvd.rds")
   summary(provide$AGEDTH)
   hist(provide$AGEDTH)
 
-
+# Testing 
 ```
