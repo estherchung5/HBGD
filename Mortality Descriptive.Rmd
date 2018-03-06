@@ -1,0 +1,93 @@
+---
+title: "Mortality descriptive"
+author: "Esther Chung"
+date: "March 6, 2018"
+output: word_document
+---
+
+Goal: Identify mortality variables in the GHAP nutritional intervention trials. 
+
+```{r}
+rm(list=ls())
+library(ghap)
+library(knitr)
+library(ggplot2)
+library(dplyr)
+library(haven)
+setwd("U:/data")
+```
+
+```{r}
+# Load data
+aga <- readRDS("akup.rds")
+bfzn <- readRDS("bfzn.rds")
+dvds <- readRDS("dvds.rds") 
+eczn <- readRDS("eczn.rds")
+eu <- readRDS("eu.rds")
+gbsc <- readRDS("gbsc.rds")
+idose <- readRDS("ilnd.rds") 
+idyad <- readRDS("ildm.rds")
+ilzn <- readRDS("lnsz.rds")
+jvit3 <- readRDS("jvt3.rds")
+jvit4 <- readRDS("jvt4.rds")
+lcni <- readRDS("lcn5.rds")
+probit <- readRDS("prbt.rds")
+sasfood <-readRDS("fspp.rds")
+tanzchild <- readRDS("tzc2.rds")
+# vita <- readRDS("")
+# vitb12 <- readRDS("vb12.rds")
+wash-bd <- readRDS("wsb.rds")
+wash-k <- readRDS("wsk.rds")
+znmort <- readRDS("zmrt.rds")
+zvit <- readRDS("zvit.rds")
+peruzn <- readRDS("pzn.rds")
+
+# Vaccine trial
+provide <- readRDS("prvd.rds") 
+```
+
+```{r}
+# According to kikm_variables, the following studies have DEAD and AGEDTH as mortality variables 
+  # DIVIDS, JIVITA, iDOSE, iDYAD, ZVITAMBO, TanzaniaChild2, PROVIDE
+
+# DIVIDS
+  table(dvds$DEATH)
+  summary(dvds$AGEDTH)
+  hist(dvds$AGEDTH)
+  table(dvds$CAUSEDTH)
+  table(dvds$CAUSDTHC)
+  
+# JiVitA-3
+  summary(jvit3$AGEDTH)
+  hist(jvit3$AGEDTH)
+  
+# JiVitA-4
+  table(jvit4$DEATH)
+  summary(jvit4$AGEDTH)
+  hist(jvit4$AGEDTH)
+  
+# iLiNS-DOSE
+  table(idose$DEATH)
+  summary(idose$AGEDTH)
+  hist(idose$AGEDTH)
+  
+# iLiNS-DYAD
+  table(idyad$DEATH)
+  summary(idyad$AGEDTH)
+  hist(idyad$AGEDTH)
+  
+# TanzaniaChild2
+  summary(tanzchild$AGEDTH)
+  hist(tanzchild$AGEDTH)
+  
+# ZVITAMBO
+  table(zvit$DEATH)
+  summary(zvit$AGEDTH)
+  hist(zvit$AGEDTH)
+  table(zvit$CAUSEDTH)
+  
+# PROVIDE
+  table(provide$DEATH)
+  summary(provide$AGEDTH)
+  hist(provide$AGEDTH)
+```
