@@ -3,9 +3,11 @@ title: "Mortality descriptive"
 author: "Esther Chung"
 date: "March 6, 2018"
 output: word_document
+editor_options: 
+  chunk_output_type: console
 ---
 
-Goal: Identify mortality variables in the GHAP nutritional intervention trials. 
+Goal: Identify and explore mortality variables in the GHAP nutritional intervention trials. 
 
 ```{r}
 rm(list=ls())
@@ -14,10 +16,11 @@ library(knitr)
 library(ggplot2)
 library(dplyr)
 library(haven)
-setwd("U:/data")
 ```
 
 ```{r}
+setwd("U:/data")
+
 # Load data
 aga <- readRDS("akup.rds")
 bfzn <- readRDS("bfzn.rds")
@@ -36,8 +39,8 @@ sasfood <-readRDS("fspp.rds")
 tanzchild <- readRDS("tzc2.rds")
 # vita <- readRDS("")
 # vitb12 <- readRDS("vb12.rds")
-wash-bd <- readRDS("wsb.rds")
-wash-k <- readRDS("wsk.rds")
+washbd <- readRDS("wsb.rds")
+washk <- readRDS("wsk.rds")
 znmort <- readRDS("zmrt.rds")
 zvit <- readRDS("zvit.rds")
 peruzn <- readRDS("pzn.rds")
@@ -51,7 +54,7 @@ provide <- readRDS("prvd.rds")
   # DIVIDS, JIVITA, iDOSE, iDYAD, ZVITAMBO, TanzaniaChild2, PROVIDE
 
 # DIVIDS
-  table(dvds$DEATH)
+  table(dvds$DEAD)
   summary(dvds$AGEDTH)
   hist(dvds$AGEDTH)
   table(dvds$CAUSEDTH)
@@ -62,21 +65,22 @@ provide <- readRDS("prvd.rds")
   hist(jvit3$AGEDTH)
   
 # JiVitA-4
-  table(jvit4$DEATH)
+  table(jvit4$DEAD)
   summary(jvit4$AGEDTH)
   hist(jvit4$AGEDTH)
   
 # iLiNS-DOSE
-  table(idose$DEATH)
+  table(idose$DEAD)
   summary(idose$AGEDTH)
   hist(idose$AGEDTH)
   
 # iLiNS-DYAD
-  table(idyad$DEATH)
+  table(idyad$DEAD)
   summary(idyad$AGEDTH)
   hist(idyad$AGEDTH)
   
 # TanzaniaChild2
+  # Something weird here...
   summary(tanzchild$AGEDTH)
   hist(tanzchild$AGEDTH)
   
@@ -86,9 +90,7 @@ provide <- readRDS("prvd.rds")
   table(zvit$CAUSEDTH)
   
 # PROVIDE
-  table(provide$DEATH)
+  table(provide$DEAD)
   summary(provide$AGEDTH)
   hist(provide$AGEDTH)
-
-# Testing 
 ```
