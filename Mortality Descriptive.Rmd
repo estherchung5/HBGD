@@ -16,6 +16,7 @@ library(knitr)
 library(ggplot2)
 library(dplyr)
 library(haven)
+# library(tidyverse)
 ```
 
 ```{r}
@@ -61,8 +62,47 @@ provide <- readRDS("prvd.rds")
   table(dvds$CAUSDTHC)
   
 # JiVitA-3
+  jvit3$AGEDTH <- as.numeric(jvit3$AGEDTH)
+  table(!is.na(d$AGEDTH))
   summary(jvit3$AGEDTH)
-  hist(jvit3$AGEDTH)
+  
+  #Check if age of death is recorded multiple times for each child who died
+  jvit3 %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n())
+
+  #Looks like it is recorded once per subject
+
+
+  #Check that the age of death is later than the oldest measurement on each child
+  jvit3 <- jvit3 %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS), deathErrorFlag= AGEDTH < AGEDAYS & !is.na(AGEDTH))
+  
+  table(jvit3$deathErrorFlag[!is.na(d$AGEDTH)])
+  
+  #Uh oh -5 children have measurements after there recorded age of death
+  jvit3$AGEDAYS[jvit3$deathErrorFlag]
+  jvit3$AGEDTH[jvit3$deathErrorFlag]
+  
+  jvit3[jvit3$deathErrorFlag,]
+  
+  #make indicator for any death
+  jvit3 <- jvit3 %>% group_by(SUBJID) %>% mutate(died= any(!is.na(AGEDTH))) %>%
+                 arrange(SUBJID, AGEDAYS)
+  
+  #subset data set to children who died
+  df_death <- jvit3 %>% filter(died) %>% subset(., select=c(SUBJID, AGEDAYS, WHZ, AGEDTH, died))
+  
+  head(df_death, 20)
+  
+  
+  #Check if anthropometry is measured when the age of death is recorded
+  df_death$WHZ[!is.na(df_death$AGEDTH)]
+  
+  #Plot WHZ trajectories before death 
+  ggplot(df_death) + geom_line(aes(x=AGEDAYS, y=WHZ, group=SUBJID), alpha=0.2) 
+  
+  
+  #Smoothed WHZ trajectories before death and compare to those who didn't die
+  ggplot(jvit3) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) +
+    facet_wrap(~died)
   
 # JiVitA-4
   table(jvit4$DEAD)
@@ -94,3 +134,6 @@ provide <- readRDS("prvd.rds")
   summary(provide$AGEDTH)
   hist(provide$AGEDTH)
 ```
+
+
+
