@@ -434,7 +434,7 @@ provide <- readRDS("prvd.rds")
   head(df_death, 20)
   
   #Check if anthropometry is measured when the age of death is recorded
-  df_death$WHZ[!is.na(df_death$AGEDTH)]
+  head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
   table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 369 missing WHZ
   
   #Plot WHZ trajectories before death among those who died and w/o death errors
