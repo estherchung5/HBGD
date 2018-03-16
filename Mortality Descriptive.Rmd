@@ -93,17 +93,17 @@ provide <- readRDS("prvd.rds")
   head(df_death, 20)
   
     #Check if anthropometry is measured when the age of death is recorded
-  df_death$WHZ[!is.na(df_death$AGEDTH)]
+  head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
   table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH))
-  
 
   #Plot WHZ trajectories before death 
   ggplot(df_death) + geom_line(aes(x=AGEDAYS, y=WHZ, group=SUBJID), alpha=0.2) 
+    # warning removed 33 rows containing missing values
   
   #Smoothed WHZ trajectories before death and compare to those who didn't die
   ggplot(dvds) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) +
     facet_wrap(~died)
-    # warning said that it removed 9,733 rows containing non-finite values
+    # warning removed 9,733 rows containing non-finite values
   
 ```
 
@@ -146,7 +146,7 @@ provide <- readRDS("prvd.rds")
   head(df_death, 20)
   
   #Check if anthropometry is measured when the age of death is recorded
-  df_death$WHZ[!is.na(df_death$AGEDTH)]
+  head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
   table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 943 missing WHZ
   
   #Plot WHZ trajectories before death 
@@ -198,7 +198,7 @@ provide <- readRDS("prvd.rds")
   head(df_death, 20)
   
   #Check if anthropometry is measured when the age of death is recorded
-  df_death$WHZ[!is.na(df_death$AGEDTH)]
+  head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
   table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 255 missing WHZ
   
   #Plot WHZ trajectories before death 
@@ -208,17 +208,18 @@ provide <- readRDS("prvd.rds")
   #Smoothed WHZ trajectories before death and compare to those who didn't die
   ggplot(jvit4) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) +
     facet_wrap(~died)
+    # warning Removed 45331 rows containing non-finite values
+  
 ```  
 
 ```{r}  
 # iLiNS-DOSE
-  table(idose$DEAD) # indicator, 5588
   idose$AGEDTH <- as.numeric(idose$AGEDTH)
   table(!is.na(idose$AGEDTH)) #1177 deaths (doesn't match DEAD)
   summary(idose$AGEDTH)
   hist(idose$AGEDTH)
   
-# Weird - need to double check b/c DEAD doesn't match table count or the died variable   
+# Note: DEAD doesn't match table count using AGEDTH or the died variable   
   
   # Check if age of death is recorded multiple times for each child who died
   idose %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
@@ -236,12 +237,8 @@ provide <- readRDS("prvd.rds")
   
   table(idose$deathErrorFlag[!is.na(idose$AGEDTH)]) # 47
   
-  #Uh oh - 47 children have measurements after their recorded age of death
-  idose$AGEDAYS[idose$deathErrorFlag] # Esther: how do you read this output?
-  idose$AGEDTH[idose$deathErrorFlag] # Esther: how do you read this output?
-  
-  idose[idose$deathErrorFlag,] # Esther: how do you read this output?
-  
+  #ISSUE - 47 children have measurements after their recorded age of death
+
   # subset data to children with death error flags
   df_error <- idose %>% filter(deathErrorFlag) %>% subset(., select=c(SUBJID, last, AGEDTH, AGEDAYS, maxAge, deathErrorFlag))
   
@@ -257,15 +254,18 @@ provide <- readRDS("prvd.rds")
   head(df_death, 20)
   
   #Check if anthropometry is measured when the age of death is recorded
-  df_death$WHZ[!is.na(df_death$AGEDTH)]
-  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH))
+  head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
+  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 1064 missing WHZ
   
   #Plot WHZ trajectories before death 
   ggplot(df_death) + geom_line(aes(x=AGEDAYS, y=WHZ, group=SUBJID), alpha=0.2) 
+    # Warning removed 683 rows containing missing values
   
   #Smoothed WHZ trajectories before death and compare to those who didn't die
   ggplot(idose) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) +
     facet_wrap(~died)
+    # warning removed 78964 rows containing non-finite values
+  
 ```
 
 ```{r}
@@ -276,7 +276,7 @@ provide <- readRDS("prvd.rds")
   summary(idyad$AGEDTH)
   hist(idyad$AGEDTH)
   
-# Weird - need to double check b/c DEAD doesn't match table count or the died variable   
+# Note:  DEAD doesn't match table count or the died variable   
   
   # Check if age of death is recorded multiple times for each child who died
   idyad %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
@@ -294,12 +294,8 @@ provide <- readRDS("prvd.rds")
   
   table(idyad$deathErrorFlag[!is.na(idyad$AGEDTH)]) #39
   
-  #Uh oh - 39 children have measurements after their recorded age of death
-  idyad$AGEDAYS[idyad$deathErrorFlag] # Esther: how do you read this output?
-  idyad$AGEDTH[idyad$deathErrorFlag] # Esther: how do you read this output?
-  
-  idyad[idyad$deathErrorFlag,] # Esther: how do you read this output?
-  
+  #ISSUE - 39 children have measurements after their recorded age of death
+   
   # subset data to children with death error flags
   df_error <- idyad %>% filter(deathErrorFlag) %>% subset(., select=c(SUBJID, last, AGEDTH, AGEDAYS, maxAge, deathErrorFlag))
   
@@ -314,14 +310,18 @@ provide <- readRDS("prvd.rds")
   head(df_death, 20)
   
   #Check if anthropometry is measured when the age of death is recorded
-  df_death$WHZ[!is.na(df_death$AGEDTH)]
+  head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
+  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 1396 missing WHZ
   
   #Plot WHZ trajectories before death 
   ggplot(df_death) + geom_line(aes(x=AGEDAYS, y=WHZ, group=SUBJID), alpha=0.2) 
+    # warning removed 632 rows containing missing values 
   
   #Smoothed WHZ trajectories before death and compare to those who didn't die
   ggplot(idose) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) +
     facet_wrap(~died)
+    # warning Removed 78964 rows containing non-finite values
+    
 ```
 
 ```{r}
@@ -336,7 +336,7 @@ provide <- readRDS("prvd.rds")
   # Check if age of death is recorded multiple times for each child who died
   tanzchild %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
   
-  # Recorded multiple times per subject and only 1 subject who died
+  # Recorded multiple times per subject but only for SUBJID 60212 
   
 ```
 
@@ -346,8 +346,7 @@ provide <- readRDS("prvd.rds")
   table(!is.na(zvit$AGEDTH)) #6778 deaths 
   summary(zvit$AGEDTH)
   hist(zvit$AGEDTH)
-  table(zvit$CAUSEDTH)
-  
+  # Also measured cause of death, CAUSEDTH
   
   # Check if age of death is recorded multiple times for each child who died
   zvit %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
@@ -365,12 +364,8 @@ provide <- readRDS("prvd.rds")
   
   table(zvit$deathErrorFlag[!is.na(zvit$AGEDTH)]) #207
   
-  #Uh oh - 207 children have measurements after their recorded age of death
-  zvit$AGEDAYS[zvit$deathErrorFlag] # Esther: how do you read this output?
-  zvit$AGEDTH[zvit$deathErrorFlag] # Esther: how do you read this output?
-  
-  zvit[zvit$deathErrorFlag,] # Esther: how do you read this output?
-  
+  #ISSUE - 207 children have measurements after their recorded age of death
+ 
   # subset data to children with death error flags
   df_error <- zvit %>% filter(deathErrorFlag) %>% subset(., select=c(SUBJID, last, AGEDTH, AGEDAYS, maxAge, deathErrorFlag))
   
@@ -385,21 +380,74 @@ provide <- readRDS("prvd.rds")
   head(df_death, 20)
   
   #Check if anthropometry is measured when the age of death is recorded
-  df_death$WHZ[!is.na(df_death$AGEDTH)]
+  head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
+  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 3879 missing WHZ
   
   #Plot WHZ trajectories before death among those who died and w/o death errors
   ggplot(df_death) + geom_line(aes(x=AGEDAYS, y=WHZ, group=SUBJID), alpha=0.2) 
+    # warning Removed 2032 rows containing missing values
   
   #Smoothed WHZ trajectories before death and compare to those who didn't die
   ggplot(zvit) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) +
     facet_wrap(~died)
+    # warning Removed 43517 rows containing non-finite values
+  
 ```
 
 ```{r}
 # PROVIDE
-  table(provide$DEAD)
+  table(provide$DEAD) # 404 deaths
+  provide$AGEDTH <- as.numeric(provide$AGEDTH)
+  table(!is.na(provide$AGEDTH)) # 404
   summary(provide$AGEDTH)
   hist(provide$AGEDTH)
+  
+  # Check if age of death is recorded multiple times for each child who died
+  provide %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
+  
+  # Recorded multiple times per subject
+  
+  # Create variable with maximum age per child
+  provide <- provide %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
+  
+  # create indicator for last observation for a child using age 
+  provide <- provide %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
+
+  # Check that the age of death is later than the oldest measurement on each child
+  provide <- provide %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
+  
+  table(provide$deathErrorFlag[!is.na(provide$AGEDTH)]) # 0! :D
+  
+  #No death error flags!
+ 
+  # subset data to children with death error flags
+  df_error <- provide %>% filter(deathErrorFlag) %>% subset(., select=c(SUBJID, last, AGEDTH, AGEDAYS, maxAge, deathErrorFlag))
+  
+  head(df_error,20)
+  
+   #make indicator for any death
+  provide <- provide %>% group_by(SUBJID) %>% mutate(died= any(!is.na(AGEDTH))) %>% arrange(SUBJID, AGEDAYS)
+  
+  #subset data set to children who died AND do not have death error flags
+  df_death <- provide %>% filter(died, deathErrorFlag==FALSE) %>% subset(., select=c(SUBJID, AGEDAYS, WHZ, AGEDTH, died))
+  
+  head(df_death, 20)
+  
+  #Check if anthropometry is measured when the age of death is recorded
+  df_death$WHZ[!is.na(df_death$AGEDTH)]
+  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 369 missing WHZ
+  
+  #Plot WHZ trajectories before death among those who died and w/o death errors
+  ggplot(df_death) + geom_line(aes(x=AGEDAYS, y=WHZ, group=SUBJID), alpha=0.2) 
+    # warning removed 20 rows containing missing values
+  
+  #Smoothed WHZ trajectories before death and compare to those who didn't die
+  ggplot(provide) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) +
+    facet_wrap(~died)
+    # warning Removed 144666 rows containing non-finite values
+  
+  
+  
 ```
 
 
