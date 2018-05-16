@@ -35,43 +35,45 @@ d <- readRDS("final_May7.rds")
   idose <- d %>% filter(STUDYID=="ki1148112-iLiNS-DOSE")
   idyadm <- d %>% filter(STUDYID=="ki1148112-iLiNS-DYAD-M")
   idyadg <- d %>% filter(STUDYID=="ki1033518-iLiNS-DYAD-G")
-  zvit <- d %>% filter(STUDYID=="ki1033518-iLiNS-DYAD-G")
-  tanzchild <- d %>% filter(STUDYID=="ki1033518-iLiNS-DYAD-G")
-  provide <- d %>% filter(STUDYID=="ki1033518-iLiNS-DYAD-G")
+  zvit <- d %>% filter(STUDYID=="ki1126311-ZVITAMBO")
+  tanzchild <- d %>% filter(STUDYID=="ki1066203-TanzaniaChild2")
+  provide <- d %>% filter(STUDYID=="ki1017093b-PROVIDE")
 ```
 
 DIVIDS 
 ```{r}
-# DIVIDS
-  divids$AGEDTH <- as.numeric(divids$AGEDTH)
-  table(!is.na(divids$AGEDTH)) #2515 deaths
-  summary(divids$AGEDTH)
-  
-  # Check if age of death is recorded multiple times for each child who died
+# Check if age of death is recorded multiple times for each child who died
   divids %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
 
-  # Recorded multiple times per subject
+  # Yes, recorded multiple times per subject
   
-  # Create variable with maximum age per child
+# Create variable with maximum age per child
   divids <- divids %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
   
-  # create indicator for last observation for a child using age 
+# create indicator for last observation for a child using age 
   divids <- divids %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
+  
+# Count total number of reported deaths using last age of the child
+  sum(table(divids$AGEDTH[divids$last==T])) # 16 deaths
+  table(divids$DEAD[divids$last==T]) # 16 deaths
+  
+  summary(divids$AGEDTH)
+  hist(divids$AGEDTH[divids$last==T])
 
-  # Check that the age of death is later than the oldest measurement on each child
+# Check that the age of death is later than the oldest measurement on each child
   divids <- divids %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
   
-  table(divids$deathErrorFlag[!is.na(divids$AGEDTH)]) # 81
+  table(divids$deathErrorFlag[!is.na(divids$AGEDTH)]) # 0
   
-  #ISSUE- 81 children have measurements after their recorded age of death
+  #0 children have measurements after their recorded age of death
   
-  # subset data to children with death error flags
-  df_error <- jvit3 %>% filter(deathErrorFlag) %>% subset(., select=c(SUBJID, last, AGEDTH, AGEDAYS, maxAge, deathErrorFlag))
+# subset data to children with death error flags
+  df_error <- divids %>% filter(deathErrorFlag) %>% subset(., select=c(SUBJID, last, AGEDTH, AGEDAYS, maxAge, deathErrorFlag))
   
   head(df_error,20)
   
-  #make indicator for any death
-  jvit3 <- jvit3 %>% group_by(SUBJID) %>% mutate(died= any(!is.na(AGEDTH))) %>%
+#make indicator for any death (died)
+  divids <- divids %>% group_by(SUBJID) %>% mutate(died= any(!is.na(AGEDTH))) %>%
                  arrange(SUBJID, AGEDAYS)
   
 #subset data set to 1) children who died AND 2) do not have death error flags
@@ -79,110 +81,56 @@ DIVIDS
   
   head(df_death, 20)
   
-  #Check if anthropometry is measured when the age of death is recorded
-  head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
-  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 943 missing WHZ
+#Check if anthropometry is measured when the age of death is recorded
+  head(df_death$WHZ[!is.na(df_death$AGEDTH) & divids$last==T], 200)
+  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 33 missing WHZ
   
-  #Plot WHZ trajectories before death 
+#Plot WHZ trajectories before death 
   ggplot(df_death) + geom_line(aes(x=AGEDAYS, y=WHZ, group=SUBJID), alpha=0.2) 
-    # warning indicates that 307 rows had missing values 
-  
-    # check how obs are missing WHZ 
-    table(!is.na(df_death$WHZ)) # missing 943 WHZ measurements 
-  
+    # warning indicates that 13 rows removed b/c had missing values 
 
-  #Smoothed WHZ trajectories before death and compare to those who didn't die
-  ggplot(divids) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) +
-    facet_wrap(~died)
-    # warning indicates that 16,246 rows contained non-finite values
+#Smoothed WHZ trajectories before death and compare to those who didn't die
+  ggplot(divids) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) + facet_wrap(~died)
+    # warning indicates that 8137 rows contained non-finite values
 ```  
 
-
+JiVitA-3
 ```{r}
-  table(d$DEAD[d$STUDYID=="ki1000301-DIVIDS"])
-  table(!is.na(d$AGEDTH)[d$STUDYID=="ki1000301-DIVIDS"]) # 72 deaths
-  summary(d$AGEDTH[d$STUDYID=="ki1000301-DIVIDS"])
-  hist(d$AGEDTH[d$STUDYID=="ki1000301-DIVIDS"])
-  
-  # Also has cause of death(CAUSEDTH0 and contributing cause of death(CAUSDTHC)
-
-  # Check if age of death is recorded multiple times for each child who died
-  d %>% filter(STUDYID=="ki1000301-DIVIDS") %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
-    # Recorded multiple times per subject
-  
-  # Create variable with maximum age per child
-  d <- d %>% filter(STUDYID=="ki1000301-DIVIDS") %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
-  
-  # create indicator for last observation for a child using age 
-  d <- d %>% filter(STUDYID=="ki1000301-DIVIDS") %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
-```
- 
-```{r} 
-  # Check that the age of death is later than the oldest measurement on each child if AGEDTH is not missing and mark the last observation per child
-  d <- d %>% filter(STUDYID=="ki1000301-DIVIDS") %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
-  
-  table(d$deathErrorFlag[!is.na(d$AGEDTH)]) # 8
-  
-  #ISSUE - 8 children have measurements after their recorded age of death
-  
-  # subset data to children with death error flags
-  df_error <- d %>% filter(deathErrorFlag) %>% subset(., select=c(SUBJID, last, AGEDTH, AGEDAYS, maxAge, deathErrorFlag))
-  
-  head(df_error,20)
- 
-  #make indicator for any death 
-  d <- d %>% group_by(SUBJID) %>% mutate(died= any(!is.na(AGEDTH))) %>%
-                 arrange(SUBJID, AGEDAYS)
-  
-  #subset data set to 1) children who died AND 2) do not have death error flags
-  df_death <- dvds %>% filter(died, deathErrorFlag==FALSE) %>% subset(., select=c(SUBJID, AGEDAYS, WHZ, AGEDTH, died, deathErrorFlag))
-  
-  head(df_death, 20)
-  
-    #Check if anthropometry is measured when the age of death is recorded
-  head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
-  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH))
-
-  #Plot WHZ trajectories before death 
-  ggplot(df_death) + geom_line(aes(x=AGEDAYS, y=WHZ, group=SUBJID), alpha=0.2) 
-    # warning removed 33 rows containing missing values
-  
-  #Smoothed WHZ trajectories before death and compare to those who didn't die
-  ggplot(dvds) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) +
-    facet_wrap(~died)
-    # warning removed 9,733 rows containing non-finite values
-```
-
-```{r}
-# JiVitA-3
-  jvit3$AGEDTH <- as.numeric(jvit3$AGEDTH)
-  table(!is.na(jvit3$AGEDTH)) #2515 deaths
-  summary(jvit3$AGEDTH)
-  
-  # Check if age of death is recorded multiple times for each child who died
+# Check if age of death is recorded multiple times for each child who died
   jvit3 %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
 
   # Recorded multiple times per subject
   
-  # Create variable with maximum age per child
+  jvit3 %>% group_by(SUBJID) %>% table(!is.na(AGEDTH))
+  
+# Create variable with maximum age per child
   jvit3 <- jvit3 %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
   
-  # create indicator for last observation for a child using age 
+# create indicator for last observation for a child using age 
   jvit3 <- jvit3 %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
 
-  # Check that the age of death is later than the oldest measurement on each child
+# Count total number of reported deaths using last age of the child
+  sum(table(jvit3$AGEDTH[jvit3$last==T])) # 1226 deaths
+  table(jvit3$DEAD[jvit3$last==T]) # 0 deaths
+  
+    # DEAD and AGEDTH variables don't match
+  
+  summary(jvit3$AGEDTH)
+  hist(jvit3$AGEDTH[jvit3$last==T])
+  
+# Check that the age of death is later than the oldest measurement on each child
   jvit3 <- jvit3 %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
   
-  table(jvit3$deathErrorFlag[!is.na(jvit3$AGEDTH)]) # 81
+  table(jvit3$deathErrorFlag[!is.na(jvit3$AGEDTH)]) # 331
   
-  #ISSUE- 81 children have measurements after their recorded age of death
+  #ISSUE- 331 children have measurements after their recorded age of death
   
-  # subset data to children with death error flags
+# subset data to children with death error flags
   df_error <- jvit3 %>% filter(deathErrorFlag) %>% subset(., select=c(SUBJID, last, AGEDTH, AGEDAYS, maxAge, deathErrorFlag))
   
   head(df_error,20)
   
-  #make indicator for any death
+#make indicator for any death (died)
   jvit3 <- jvit3 %>% group_by(SUBJID) %>% mutate(died= any(!is.na(AGEDTH))) %>%
                  arrange(SUBJID, AGEDAYS)
   
@@ -191,50 +139,53 @@ DIVIDS
   
   head(df_death, 20)
   
-  #Check if anthropometry is measured when the age of death is recorded
+#Check if anthropometry is measured when the age of death is recorded
   head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
-  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 943 missing WHZ
+  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 1471 missing WHZ
   
-  #Plot WHZ trajectories before death 
+#Plot WHZ trajectories before death 
   ggplot(df_death) + geom_line(aes(x=AGEDAYS, y=WHZ, group=SUBJID), alpha=0.2) 
-    # warning indicates that 307 rows had missing values 
-  
-    # check how obs are missing WHZ 
-    table(!is.na(df_death$WHZ)) # missing 943 WHZ measurements 
-  
+    # warning indicates that 1471 rows had missing values 
 
-  #Smoothed WHZ trajectories before death and compare to those who didn't die
-  ggplot(jvit3) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) +
-    facet_wrap(~died)
+#Smoothed WHZ trajectories before death and compare to those who didn't die
+  ggplot(jvit3) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) + facet_wrap(~died)
     # warning indicates that 16,246 rows contained non-finite values
   
 ```
 
+JiVitA-4
 ```{r}
-# JiVitA-4
-  table(jvit4$DEAD) # indicator; 468 deaths
-  jvit4$AGEDTH <- as.numeric(jvit4$AGEDTH)
-  table(!is.na(jvit4$AGEDTH)) #468 deaths
-  summary(jvit4$AGEDTH)
-  hist(jvit4$AGEDTH)
-  
-  # Check if age of death is recorded multiple times for each child who died
+# Check if age of death is recorded multiple times for each child who died
   jvit4 %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
   
   # Recorded multiple times per subject
   
-  # Create variable with maximum age per child
+# Create variable with maximum age per child
   jvit4 <- jvit4 %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
   
-  # create indicator for last observation for a child using age 
+# create indicator for last observation for a child using age 
   jvit4 <- jvit4 %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
 
-  # Check that the age of death is later than the oldest measurement on each child
+# Count total number of reported deaths using last age of the child
+  sum(table(jvit4$AGEDTH[jvit4$last==T])) # 50 deaths
+  table(jvit4$DEAD[jvit4$last==T]) # 50 deaths
+  
+  summary(jvit4$AGEDTH)
+  hist(jvit4$AGEDTH[jvit4$last==T])  
+  
+# Check that the age of death is later than the oldest measurement on each child
   jvit4 <- jvit4 %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
   
-  table(jvit4$deathErrorFlag[!is.na(jvit4$AGEDTH)]) # 0! :D
+  table(jvit4$deathErrorFlag[!is.na(jvit4$AGEDTH)]) # 1
   
- #make indicator for any death
+  # ISSUE: 1 person has measurements after recorded age of death
+  
+# subset data to children with death error flags
+  df_error <- jvit4 %>% filter(deathErrorFlag) %>% subset(., select=c(SUBJID, last, AGEDTH, AGEDAYS, maxAge, deathErrorFlag))
+  
+  head(df_error,20)
+  
+#make indicator for any death (died)
   jvit4 <- jvit4 %>% group_by(SUBJID) %>% mutate(died= any(!is.na(AGEDTH))) %>%
                  arrange(SUBJID, AGEDAYS)
   
@@ -243,54 +194,55 @@ DIVIDS
   
   head(df_death, 20)
   
-  #Check if anthropometry is measured when the age of death is recorded
+#Check if anthropometry is measured when the age of death is recorded
   head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
-  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 255 missing WHZ
+  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 213 missing WHZ
   
-  #Plot WHZ trajectories before death 
+#Plot WHZ trajectories before death 
   ggplot(df_death) + geom_line(aes(x=AGEDAYS, y=WHZ, group=SUBJID), alpha=0.2) 
-    # warning 42 rows containing missing values
+    # warning 1726 rows containing missing values
   
-  #Smoothed WHZ trajectories before death and compare to those who didn't die
-  ggplot(jvit4) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) +
-    facet_wrap(~died)
-    # warning Removed 45331 rows containing non-finite values
+#Smoothed WHZ trajectories before death and compare to those who didn't die
+  ggplot(jvit4) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) + facet_wrap(~died)
+    # warning Removed 1,844,998 rows containing non-finite values
   
 ```  
 
+iLiNS-DOSE
 ```{r}  
-# iLiNS-DOSE
-  idose$AGEDTH <- as.numeric(idose$AGEDTH)
-  table(!is.na(idose$AGEDTH)) #1177 deaths (doesn't match DEAD)
-  summary(idose$AGEDTH)
-  hist(idose$AGEDTH)
-  
-# Note: DEAD doesn't match table count using AGEDTH or the died variable   
-  
-  # Check if age of death is recorded multiple times for each child who died
+# Check if age of death is recorded multiple times for each child who died
   idose %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
   
   # Recorded multiple times per subject
   
-  # Create variable with maximum age per child
+# Create variable with maximum age per child
   idose <- idose %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
   
-  # create indicator for last observation for a child using age 
+# create indicator for last observation for a child using age 
   idose <- idose %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
 
+# Count total number of reported deaths using last age of the child
+  sum(table(idose$AGEDTH[idose$last==T])) # 53 deaths
+  table(idose$DEAD[idose$last==T]) # 129 deaths
+  
+  # DEAD and AGEDTH don't match!
+  
+  summary(idose$AGEDTH)
+  hist(idose$AGEDTH[idose$last==T])   
+  
   # Check that the age of death is later than the oldest measurement on each child
   idose <- idose %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
   
-  table(idose$deathErrorFlag[!is.na(idose$AGEDTH)]) # 47
+  table(idose$deathErrorFlag[!is.na(idose$AGEDTH)]) # 38
   
-  #ISSUE - 47 children have measurements after their recorded age of death
+  #ISSUE - 38 children have measurements after their recorded age of death
 
   # subset data to children with death error flags
   df_error <- idose %>% filter(deathErrorFlag) %>% subset(., select=c(SUBJID, last, AGEDTH, AGEDAYS, maxAge, deathErrorFlag))
   
   head(df_error,20)
   
-   #make indicator for any death
+   #make indicator for any death (died)
   idose <- idose %>% group_by(SUBJID) %>% mutate(died= any(!is.na(AGEDTH))) %>%
                  arrange(SUBJID, AGEDAYS)
   
@@ -301,172 +253,188 @@ DIVIDS
   
   #Check if anthropometry is measured when the age of death is recorded
   head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
-  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 1064 missing WHZ
+  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 66 missing WHZ
   
   #Plot WHZ trajectories before death 
   ggplot(df_death) + geom_line(aes(x=AGEDAYS, y=WHZ, group=SUBJID), alpha=0.2) 
-    # Warning removed 683 rows containing missing values
+    # Warning removed 178 rows containing missing values
   
   #Smoothed WHZ trajectories before death and compare to those who didn't die
-  ggplot(idose) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) +
-    facet_wrap(~died)
-    # warning removed 78964 rows containing non-finite values
-  
+  ggplot(idose) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) + facet_wrap(~died)
+    # warning removed 14248 rows containing non-finite values
 ```
 
 iLiNS-DYAD-M
 ```{r}
-  table(idyadm$DEAD) # indicator, 1679
-  idyadm$AGEDTH <- as.numeric(idyadm$AGEDTH)
-  table(!is.na(idyadm$AGEDTH)) #1516 deaths (doesn't match DEAD)
-  summary(idyadm$AGEDTH)
-  hist(idyadm$AGEDTH)
-  
-# Note:  DEAD doesn't match table count or the died variable   
-  
-  # Check if age of death is recorded multiple times for each child who died
+# Check if age of death is recorded multiple times for each child who died
   idyadm %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
   
   # Recorded multiple times per subject
   
-  # Create variable with maximum age per child
+# Create variable with maximum age per child
   idyadm <- idyadm %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
   
-  # create indicator for last observation for a child using age 
+# create indicator for last observation for a child using age 
   idyadm <- idyadm %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
 
-  # Check that the age of death is later than the oldest measurement on each child
+# Count total number of reported deaths using last age of the child
+  sum(table(idyadm$AGEDTH[idyadm$last==T])) # 57 deaths
+  table(idyadm$DEAD[idyadm$last==T]) # 59 deaths
+  
+  # DEAD and AGEDTH don't match!
+  
+  summary(idyadm$AGEDTH)
+  hist(idyadm$AGEDTH[idyadm$last==T])  
+  
+# Check that the age of death is later than the oldest measurement on each child
   idyadm <- idyadm %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
   
-  table(idyadm$deathErrorFlag[!is.na(idyadm$AGEDTH)]) #39
+  table(idyadm$deathErrorFlag[!is.na(idyadm$AGEDTH)]) #10
   
-  #ISSUE - 39 children have measurements after their recorded age of death
+  #ISSUE - 10 children have measurements after their recorded age of death
    
-  # subset data to children with death error flags
+# subset data to children with death error flags
   df_error <- idyadm %>% filter(deathErrorFlag) %>% subset(., select=c(SUBJID, last, AGEDTH, AGEDAYS, maxAge, deathErrorFlag))
   
   head(df_error,20)
   
-   #make indicator for any death
-  idyad <- idyadm %>% group_by(SUBJID) %>% mutate(died= any(!is.na(AGEDTH))) %>% arrange(SUBJID, AGEDAYS)
+#make indicator for any death
+  idyadm <- idyadm %>% group_by(SUBJID) %>% mutate(died= any(!is.na(AGEDTH))) %>% arrange(SUBJID, AGEDAYS)
   
-  #subset data set to children who died AND do not have death error flags
+#subset data set to children who died AND do not have death error flags
   df_death <- idyadm %>% filter(died, deathErrorFlag==FALSE) %>% subset(., select=c(SUBJID, AGEDAYS, WHZ, AGEDTH, died, DEAD))
   
   head(df_death, 20)
   
-  #Check if anthropometry is measured when the age of death is recorded
+#Check if anthropometry is measured when the age of death is recorded
   head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
-  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 1396 missing WHZ
+  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 81 missing WHZ
   
-  #Plot WHZ trajectories before death 
+#Plot WHZ trajectories before death 
   ggplot(df_death) + geom_line(aes(x=AGEDAYS, y=WHZ, group=SUBJID), alpha=0.2) 
-    # warning removed 632 rows containing missing values 
+    # warning removed 178 rows containing missing values 
   
-  #Smoothed WHZ trajectories before death and compare to those who didn't die
-  ggplot(idyadm) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) +
-    facet_wrap(~died)
-    # warning Removed 78964 rows containing non-finite values
+#Smoothed WHZ trajectories before death and compare to those who didn't die
+  ggplot(idyadm) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) + facet_wrap(~died)
+    # warning Removed 15346 rows containing non-finite values
+  
+  # Looks strange - horizontal line at roughly -0.45 for those who died
     
 ```
 
+iLiNS-DYAD-G
 ```{r}
-# iLiNS-DYAD
-  table(idyadg$DEAD) # indicator, 1679
-  idyadg$AGEDTH <- as.numeric(idyadg$AGEDTH)
-  table(!is.na(idyadg$AGEDTH)) #1516 deaths (doesn't match DEAD)
-  summary(idyadg$AGEDTH)
-  hist(idyadg$AGEDTH)
+# DEATH VAR NOT INCLUDED YET, but published paper says there were 27 deaths
+
+# Check if age of death is recorded multiple times for each child who died
+  # idyadg %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
   
-# Note:  DEAD doesn't match table count or the died variable   
-  
-  # Check if age of death is recorded multiple times for each child who died
-  idyadg %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
-  
+
   # Recorded multiple times per subject
   
-  # Create variable with maximum age per child
-  idyadg <- idyadg %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
+# Create variable with maximum age per child
+  # idyadg <- idyadg %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
   
-  # create indicator for last observation for a child using age 
-  idyadg <- idyadg %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
+# create indicator for last observation for a child using age 
+  # idyadg <- idyadg %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
 
-  # Check that the age of death is later than the oldest measurement on each child
-  idyadg <- idyadg %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
+# Count total number of reported deaths using last age of the child
+  # sum(table(idyadg$AGEDTH[idyadm$last==T])) # 57 deaths
+  # table(idyadm$DEAD[idyadm$last==T]) # 59 deaths
   
-  table(idyadg$deathErrorFlag[!is.na(idyadg$AGEDTH)]) #39
+  # DEAD and AGEDTH don't match!
+  
+  # hist(idyadm$AGEDTH[idyadm$last==T])    
+  
+# Check that the age of death is later than the oldest measurement on each child
+  # idyadg <- idyadg %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
+  
+  # table(idyadg$deathErrorFlag[!is.na(idyadg$AGEDTH)]) #39
   
   #ISSUE - 39 children have measurements after their recorded age of death
    
   # subset data to children with death error flags
-  df_error <- idyadg %>% filter(deathErrorFlag) %>% subset(., select=c(SUBJID, last, AGEDTH, AGEDAYS, maxAge, deathErrorFlag))
+  # df_error <- idyadg %>% filter(deathErrorFlag) %>% subset(., select=c(SUBJID, last, AGEDTH, AGEDAYS, maxAge, deathErrorFlag))
   
-  head(df_error,20)
+  # head(df_error,20)
   
    #make indicator for any death
-  idyadg <- idyadg %>% group_by(SUBJID) %>% mutate(died= any(!is.na(AGEDTH))) %>% arrange(SUBJID, AGEDAYS)
+  # idyadg <- idyadg %>% group_by(SUBJID) %>% mutate(died= any(!is.na(AGEDTH))) %>% arrange(SUBJID, AGEDAYS)
   
   #subset data set to children who died AND do not have death error flags
-  df_death <- idyadg %>% filter(died, deathErrorFlag==FALSE) %>% subset(., select=c(SUBJID, AGEDAYS, WHZ, AGEDTH, died, DEAD))
+  # df_death <- idyadg %>% filter(died, deathErrorFlag==FALSE) %>% subset(., select=c(SUBJID, AGEDAYS, WHZ, AGEDTH, died, DEAD))
   
-  head(df_death, 20)
+  # head(df_death, 20)
   
   #Check if anthropometry is measured when the age of death is recorded
-  head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
-  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 1396 missing WHZ
+  # head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
+  # table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 1396 missing WHZ
   
   #Plot WHZ trajectories before death 
-  ggplot(df_death) + geom_line(aes(x=AGEDAYS, y=WHZ, group=SUBJID), alpha=0.2) 
+  # ggplot(df_death) + geom_line(aes(x=AGEDAYS, y=WHZ, group=SUBJID), alpha=0.2) 
     # warning removed 632 rows containing missing values 
   
   #Smoothed WHZ trajectories before death and compare to those who didn't die
-  ggplot(idyadg) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) +
-    facet_wrap(~died)
+  # ggplot(idyadg) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) + facet_wrap(~died)
     # warning Removed 78964 rows containing non-finite values
     
 ```
 
+TanzaniaChild2
 ```{r}
-# TanzaniaChild2
-  tanzchild$AGEDTH <- as.numeric(tanzchild$AGEDTH)
-  table(!is.na(tanzchild$AGEDTH)) #18 deaths
-  
-  # Something weird here... I think only 1 child is marked as having died in the dataset, but the main paper said at least 45 children died
-  summary(tanzchild$AGEDTH)
+# Something weird here... Only 1 child is marked as having died in the dataset, but the main paper said at least 45 children died
   hist(tanzchild$AGEDTH)
   
-  # Check if age of death is recorded multiple times for each child who died
+# Check if age of death is recorded multiple times for each child who died
   tanzchild %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
   
-  # Recorded multiple times per subject but only for SUBJID 60212 
+  # Recorded 21 times per subject but only for SUBJID 60212 
   
+# Create variable with maximum age per child
+  tanzchild <- tanzchild %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
+  
+# create indicator for last observation for a child using age 
+  tanzchild <- tanzchild %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
+
+# Count total number of reported deaths using last age of the child
+  sum(table(tanzchild$AGEDTH[tanzchild$last==T])) # 1 death
+  table(tanzchild$DEAD[tanzchild$last==T]) # 0 deaths
+  
+  # DEAD and AGEDTH don't match!
+  summary(tanzchild$AGEDTH)
+  hist(tanzchild$AGEDTH[tanzchild$last==T])  
 ```
 
+ZVITAMBO
 ```{r}
-# ZVITAMBO
-  zvit$AGEDTH <- as.numeric(zvit$AGEDTH)
-  table(!is.na(zvit$AGEDTH)) #6778 deaths 
-  summary(zvit$AGEDTH)
-  hist(zvit$AGEDTH)
-  # Also measured cause of death, CAUSEDTH
+# Also measured cause of death, CAUSEDTH
   
-  # Check if age of death is recorded multiple times for each child who died
+# Check if age of death is recorded multiple times for each child who died
   zvit %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
   
   # Recorded multiple times per subject
   
-  # Create variable with maximum age per child
+# Create variable with maximum age per child
   zvit <- zvit %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
   
-  # create indicator for last observation for a child using age 
+# create indicator for last observation for a child using age 
   zvit <- zvit %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
 
-  # Check that the age of death is later than the oldest measurement on each child
+# Count total number of reported deaths using last age of the child
+  sum(table(zvit$AGEDTH[zvit$last==T])) # 1067 death
+  table(zvit$DEAD[zvit$last==T]) # 1123 deaths
+  
+  # DEAD and AGEDTH don't match!
+  
+  summary(zvit$AGEDTH)
+  hist(zvit$AGEDTH[zvit$last==T])    
+  
+# Check that the age of death is later than the oldest measurement on each child
   zvit <- zvit %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
   
-  table(zvit$deathErrorFlag[!is.na(zvit$AGEDTH)]) #207
+  table(zvit$deathErrorFlag[!is.na(zvit$AGEDTH)]) #85
   
-  #ISSUE - 207 children have measurements after their recorded age of death
+  #ISSUE - 85 children have measurements after their recorded age of death
  
   # subset data to children with death error flags
   df_error <- zvit %>% filter(deathErrorFlag) %>% subset(., select=c(SUBJID, last, AGEDTH, AGEDAYS, maxAge, deathErrorFlag))
@@ -483,45 +451,51 @@ iLiNS-DYAD-M
   
   #Check if anthropometry is measured when the age of death is recorded
   head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
-  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 3879 missing WHZ
+  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 2690 missing WHZ at time of death
   
-  #Plot WHZ trajectories before death among those who died and w/o death errors
+  #Plot WHZ trajectories before death among those who died AND w/o death errors
   ggplot(df_death) + geom_line(aes(x=AGEDAYS, y=WHZ, group=SUBJID), alpha=0.2) 
-    # warning Removed 2032 rows containing missing values
+    # warning Removed 1717 rows containing missing values
   
   #Smoothed WHZ trajectories before death and compare to those who didn't die
-  ggplot(zvit) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) +
-    facet_wrap(~died)
-    # warning Removed 43517 rows containing non-finite values
-  
+  ggplot(zvit) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) + facet_wrap(~died)
+    # warning Removed 36476 rows containing non-finite values
 ```
 
+PROVIDE
 ```{r}
-# PROVIDE
-  table(provide$DEAD) # 404 deaths
-  provide$AGEDTH <- as.numeric(provide$AGEDTH)
-  table(!is.na(provide$AGEDTH)) # 404
-  summary(provide$AGEDTH)
-  hist(provide$AGEDTH)
-  
-  # Check if age of death is recorded multiple times for each child who died
+# Check if age of death is recorded multiple times for each child who died
   provide %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
   
   # Recorded multiple times per subject
   
-  # Create variable with maximum age per child
+# Create variable with maximum age per child
   provide <- provide %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
   
-  # create indicator for last observation for a child using age 
+# create indicator for last observation for a child using age 
   provide <- provide %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
-
+  
+# Count total number of reported deaths using last age of the child
+  sum(table(provide$AGEDTH[provide$last==T])) # 5 death
+  table(provide$DEAD[provide$last==T]) # 5 deaths
+  
+  summary(provide$AGEDTH)
+  hist(provide$AGEDTH[provide$last==T])    
+   
+  
   # Check that the age of death is later than the oldest measurement on each child
   provide <- provide %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
   
-  table(provide$deathErrorFlag[!is.na(provide$AGEDTH)]) # 0! :D
+  table(provide$deathErrorFlag[!is.na(provide$AGEDTH)]) # 4
   
-  #No death error flags!
+  #ISSUE - 4 children have measurements after their recorded age of death
+  # A LOT of children were followed up to 762 days. 
  
+  # subset data to children with death error flags
+  df_error <- provide %>% filter(deathErrorFlag) %>% subset(., select=c(SUBJID, last, AGEDTH, AGEDAYS, maxAge, deathErrorFlag))
+  
+  head(df_error,20)
+  
   # subset data to children with death error flags
   df_error <- provide %>% filter(deathErrorFlag) %>% subset(., select=c(SUBJID, last, AGEDTH, AGEDAYS, maxAge, deathErrorFlag))
   
@@ -537,16 +511,16 @@ iLiNS-DYAD-M
   
   #Check if anthropometry is measured when the age of death is recorded
   head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
-  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 369 missing WHZ
+  table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 35 missing WHZ
   
   #Plot WHZ trajectories before death among those who died and w/o death errors
   ggplot(df_death) + geom_line(aes(x=AGEDAYS, y=WHZ, group=SUBJID), alpha=0.2) 
-    # warning removed 20 rows containing missing values
+    
+    # ISSUE: plot is blank. 
   
   #Smoothed WHZ trajectories before death and compare to those who didn't die
-  ggplot(provide) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) +
-    facet_wrap(~died)
-    # warning Removed 144666 rows containing non-finite values
+  ggplot(provide) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) +  facet_wrap(~died)
+    # warning Removed 523542 rows containing non-finite values
 ```
 
 
