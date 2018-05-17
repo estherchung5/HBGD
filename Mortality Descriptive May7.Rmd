@@ -105,7 +105,7 @@ DIVIDS
 JiVitA-3
 ```{r}
 # Make sure data arranged by subject id and age days
-  jvit3 %>% arrange(SUBJID, AGEDAYS)
+  jvit3 <- jvit3 %>% arrange(SUBJID, AGEDAYS)
 
 # Check if age of death is recorded multiple times for each child who died
   jvit3 %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
@@ -229,7 +229,7 @@ JiVitA-4
 iLiNS-DOSE
 ```{r}  
 # Make sure data arranged by subject id and age days
-  idose %>% arrange(SUBJID, AGEDAYS)
+  idose <- idose %>% arrange(SUBJID, AGEDAYS)
 
 # Check if age of death is recorded multiple times for each child who died
   idose %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
@@ -293,7 +293,7 @@ iLiNS-DOSE
 iLiNS-DYAD-M
 ```{r}
 # Make sure data arranged by subject id and age days
-  idyadm %>% arrange(SUBJID, AGEDAYS)
+  idyadm <- idyadm %>% arrange(SUBJID, AGEDAYS)
 
 # Check if age of death is recorded multiple times for each child who died
   idyadm %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
@@ -358,7 +358,7 @@ iLiNS-DYAD-M
 iLiNS-DYAD-G
 ```{r}
 # Make sure data arranged by subject id and age days
-  # idyadg %>% arrange(SUBJID, AGEDAYS)
+  # idyadg <- idyadg %>% arrange(SUBJID, AGEDAYS)
 
 # DEATH VAR NOT INCLUDED YET, but published paper says there were 27 deaths
 
@@ -424,7 +424,7 @@ iLiNS-DYAD-G
 TanzaniaChild2
 ```{r}
 # Make sure data arranged by subject id and age days
-  jvit3 %>% arrange(SUBJID, AGEDAYS)
+  tanzchild <- tanzchild %>% arrange(SUBJID, AGEDAYS)
 
 # Something weird here... Only 1 child is marked as having died in the dataset, but the main paper said at least 45 children died
   hist(tanzchild$AGEDTH)
@@ -458,7 +458,7 @@ ZVITAMBO
 # Also measured cause of death, CAUSEDTH
 
 # Make sure data arranged by subject id and age days
-  zvit %>% arrange(SUBJID, AGEDAYS)
+  zvit <- zvit %>% arrange(SUBJID, AGEDAYS)
   
 # Check if age of death is recorded multiple times for each child who died
   zvit %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
@@ -520,7 +520,7 @@ ZVITAMBO
 PROVIDE
 ```{r}
 # Make sure data arranged by subject id and age days
-  provide %>% arrange(SUBJID, AGEDAYS)
+  provide <- provide %>% arrange(SUBJID, AGEDAYS)
 
 # Check if age of death is recorded multiple times for each child who died
   provide %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
