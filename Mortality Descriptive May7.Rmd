@@ -19,7 +19,8 @@ library(tidyverse)
 ```{r, include=FALSE}
 setwd("U:/data")
 
-d <- readRDS("final_May7.rds") 
+d <- readRDS("final_May7.rds")
+gc()
 ```
 
 ```{r, warning=FALSE}
@@ -42,23 +43,30 @@ d <- readRDS("final_May7.rds")
 
 DIVIDS 
 ```{r}
+# Make sure data arranged by subject id and age days
+  divids <- divids %>% arrange(SUBJID, AGEDAYS)
+
 # Check if age of death is recorded multiple times for each child who died
   divids %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
 
   # Yes, recorded multiple times per subject
-  
+
 # Create variable with maximum age per child
   divids <- divids %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
   
 # create indicator for last observation for a child using age 
-  divids <- divids %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
+  divids <- divids %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge)
+  
+# Create flag for the last time point for each subject if the child died 
+  divids$death <- NA
+  divids <- divids %>% group_by(SUBJID) %>% mutate(death = any(!is.na(AGEDTH)) & last==T)  
   
 # Count total number of reported deaths using last age of the child
-  sum(table(divids$AGEDTH[divids$last==T])) # 16 deaths
-  table(divids$DEAD[divids$last==T]) # 16 deaths
+  table(divids$death==T) # 16 deaths
+  table(divids$DEAD[divids$death==T]) # 16 deaths
   
   summary(divids$AGEDTH)
-  hist(divids$AGEDTH[divids$last==T])
+  hist(divids$AGEDTH[divids$death==T])
 
 # Check that the age of death is later than the oldest measurement on each child
   divids <- divids %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
@@ -82,7 +90,7 @@ DIVIDS
   head(df_death, 20)
   
 #Check if anthropometry is measured when the age of death is recorded
-  head(df_death$WHZ[!is.na(df_death$AGEDTH) & divids$last==T], 200)
+  head(df_death$WHZ[!is.na(df_death$AGEDTH)], 200)
   table(!is.na(df_death$WHZ) & !is.na(df_death$AGEDTH)) # 33 missing WHZ
   
 #Plot WHZ trajectories before death 
@@ -96,27 +104,32 @@ DIVIDS
 
 JiVitA-3
 ```{r}
+
+  jvit3 %>% arrange(SUBJID, AGEDAYS)
+
 # Check if age of death is recorded multiple times for each child who died
   jvit3 %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
 
   # Recorded multiple times per subject
   
-  jvit3 %>% group_by(SUBJID) %>% table(!is.na(AGEDTH))
-  
 # Create variable with maximum age per child
   jvit3 <- jvit3 %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
   
 # create indicator for last observation for a child using age 
-  jvit3 <- jvit3 %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
+  jvit3 <- jvit3 %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge)
 
+# Create flag for the last time point for each subject if the child died 
+  jvit3$death <- NA
+  jvit3 <- jvit3 %>% group_by(SUBJID) %>% mutate(death = any(!is.na(AGEDTH)) & last==T)    
+  
 # Count total number of reported deaths using last age of the child
-  sum(table(jvit3$AGEDTH[jvit3$last==T])) # 1226 deaths
-  table(jvit3$DEAD[jvit3$last==T]) # 0 deaths
+  table(jvit3$death==T) # 1226 deaths
+  table(jvit3$DEAD[jvit3$death==T]) # 0 deaths
   
     # DEAD and AGEDTH variables don't match
   
   summary(jvit3$AGEDTH)
-  hist(jvit3$AGEDTH[jvit3$last==T])
+  hist(jvit3$AGEDTH[jvit3$death==T])
   
 # Check that the age of death is later than the oldest measurement on each child
   jvit3 <- jvit3 %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
@@ -145,12 +158,11 @@ JiVitA-3
   
 #Plot WHZ trajectories before death 
   ggplot(df_death) + geom_line(aes(x=AGEDAYS, y=WHZ, group=SUBJID), alpha=0.2) 
-    # warning indicates that 1471 rows had missing values 
+    # warning indicates that 1105 rows had missing values 
 
 #Smoothed WHZ trajectories before death and compare to those who didn't die
   ggplot(jvit3) + geom_smooth(aes(x=AGEDAYS, y=WHZ)) + facet_wrap(~died)
-    # warning indicates that 16,246 rows contained non-finite values
-  
+    # warning indicates that 120153 rows contained non-finite values
 ```
 
 JiVitA-4
