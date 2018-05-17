@@ -104,7 +104,7 @@ DIVIDS
 
 JiVitA-3
 ```{r}
-
+# Make sure data arranged by subject id and age days
   jvit3 %>% arrange(SUBJID, AGEDAYS)
 
 # Check if age of death is recorded multiple times for each child who died
@@ -167,6 +167,9 @@ JiVitA-3
 
 JiVitA-4
 ```{r}
+# Make sure data arranged by subject id and age days
+  jvit4 <- jvit4 %>% arrange(SUBJID, AGEDAYS)
+
 # Check if age of death is recorded multiple times for each child who died
   jvit4 %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
   
@@ -178,12 +181,16 @@ JiVitA-4
 # create indicator for last observation for a child using age 
   jvit4 <- jvit4 %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
 
+# Create flag for the last time point for each subject if the child died 
+  jvit4$death <- NA
+  jvit4 <- jvit4 %>% group_by(SUBJID) %>% mutate(death = any(!is.na(AGEDTH)) & last==T)  
+  
 # Count total number of reported deaths using last age of the child
-  sum(table(jvit4$AGEDTH[jvit4$last==T])) # 50 deaths
-  table(jvit4$DEAD[jvit4$last==T]) # 50 deaths
+  table(jvit4$death==T) # 50 deaths
+  table(jvit4$DEAD[jvit4$death==T]) # 50 deaths
   
   summary(jvit4$AGEDTH)
-  hist(jvit4$AGEDTH[jvit4$last==T])  
+  hist(jvit4$AGEDTH[jvit4$death==T])  
   
 # Check that the age of death is later than the oldest measurement on each child
   jvit4 <- jvit4 %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
@@ -222,6 +229,9 @@ JiVitA-4
 
 iLiNS-DOSE
 ```{r}  
+# Make sure data arranged by subject id and age days
+  idose %>% arrange(SUBJID, AGEDAYS)
+
 # Check if age of death is recorded multiple times for each child who died
   idose %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
   
@@ -231,16 +241,21 @@ iLiNS-DOSE
   idose <- idose %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
   
 # create indicator for last observation for a child using age 
-  idose <- idose %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
+  idose <- idose %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge)
+  
+  # Create flag for the last time point for each subject if the child died 
+  idose$death <- NA
+  idose <- idose %>% group_by(SUBJID) %>% mutate(death = any(!is.na(AGEDTH)) & last==T)  
+  
 
 # Count total number of reported deaths using last age of the child
-  sum(table(idose$AGEDTH[idose$last==T])) # 53 deaths
-  table(idose$DEAD[idose$last==T]) # 129 deaths
+  table(idose$death==T) # 53 deaths
+  table(idose$DEAD[idose$death==T]) # 129 deaths
   
   # DEAD and AGEDTH don't match!
   
   summary(idose$AGEDTH)
-  hist(idose$AGEDTH[idose$last==T])   
+  hist(idose$AGEDTH[idose$death==T])   
   
   # Check that the age of death is later than the oldest measurement on each child
   idose <- idose %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
@@ -278,6 +293,9 @@ iLiNS-DOSE
 
 iLiNS-DYAD-M
 ```{r}
+# Make sure data arranged by subject id and age days
+  idyadm %>% arrange(SUBJID, AGEDAYS)
+
 # Check if age of death is recorded multiple times for each child who died
   idyadm %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
   
@@ -287,16 +305,20 @@ iLiNS-DYAD-M
   idyadm <- idyadm %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
   
 # create indicator for last observation for a child using age 
-  idyadm <- idyadm %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
+  idyadm <- idyadm %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge)
+  
+# Create flag for the last time point for each subject if the child died 
+  idyadm$death <- NA
+  idyadm <- idyadm %>% group_by(SUBJID) %>% mutate(death = any(!is.na(AGEDTH)) & last==T)  
 
 # Count total number of reported deaths using last age of the child
-  sum(table(idyadm$AGEDTH[idyadm$last==T])) # 57 deaths
-  table(idyadm$DEAD[idyadm$last==T]) # 59 deaths
+  table(idyadm$death==T) # 57 deaths
+  table(idyadm$DEAD[idyadm$death==T]) # 59 deaths
   
   # DEAD and AGEDTH don't match!
   
   summary(idyadm$AGEDTH)
-  hist(idyadm$AGEDTH[idyadm$last==T])  
+  hist(idyadm$AGEDTH[idyadm$death==T])  
   
 # Check that the age of death is later than the oldest measurement on each child
   idyadm <- idyadm %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
@@ -336,6 +358,9 @@ iLiNS-DYAD-M
 
 iLiNS-DYAD-G
 ```{r}
+# Make sure data arranged by subject id and age days
+  # idyadg %>% arrange(SUBJID, AGEDAYS)
+
 # DEATH VAR NOT INCLUDED YET, but published paper says there were 27 deaths
 
 # Check if age of death is recorded multiple times for each child who died
@@ -350,13 +375,18 @@ iLiNS-DYAD-G
 # create indicator for last observation for a child using age 
   # idyadg <- idyadg %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
 
+# Create flag for the last time point for each subject if the child died 
+  # idyadg$death <- NA
+  # idyadg <- idyadg %>% group_by(SUBJID) %>% mutate(death = any(!is.na(AGEDTH)) & last==T)  
+  
+
 # Count total number of reported deaths using last age of the child
-  # sum(table(idyadg$AGEDTH[idyadm$last==T])) # 57 deaths
-  # table(idyadm$DEAD[idyadm$last==T]) # 59 deaths
+  # table(idyadg$death==T) # 57 deaths
+  # table(idyadg$DEAD[idyadg$death==T]) # 59 deaths
   
   # DEAD and AGEDTH don't match!
   
-  # hist(idyadm$AGEDTH[idyadm$last==T])    
+  # hist(idyadg$AGEDTH[idyadm$death==T])    
   
 # Check that the age of death is later than the oldest measurement on each child
   # idyadg <- idyadg %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
@@ -394,6 +424,9 @@ iLiNS-DYAD-G
 
 TanzaniaChild2
 ```{r}
+# Make sure data arranged by subject id and age days
+  jvit3 %>% arrange(SUBJID, AGEDAYS)
+
 # Something weird here... Only 1 child is marked as having died in the dataset, but the main paper said at least 45 children died
   hist(tanzchild$AGEDTH)
   
@@ -406,20 +439,27 @@ TanzaniaChild2
   tanzchild <- tanzchild %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
   
 # create indicator for last observation for a child using age 
-  tanzchild <- tanzchild %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
+  tanzchild <- tanzchild %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge)
+  
+# Create flag for the last time point for each subject if the child died 
+  tanzchild$death <- NA
+  tanzchild <- tanzchild %>% group_by(SUBJID) %>% mutate(death = any(!is.na(AGEDTH)) & last==T)  
 
 # Count total number of reported deaths using last age of the child
-  sum(table(tanzchild$AGEDTH[tanzchild$last==T])) # 1 death
-  table(tanzchild$DEAD[tanzchild$last==T]) # 0 deaths
+  table(tanzchild$death==T) # 1 death
+  table(tanzchild$DEAD[tanzchild$death==T]) # 0 deaths
   
   # DEAD and AGEDTH don't match!
   summary(tanzchild$AGEDTH)
-  hist(tanzchild$AGEDTH[tanzchild$last==T])  
+  hist(tanzchild$AGEDTH[tanzchild$death==T])  
 ```
 
 ZVITAMBO
 ```{r}
 # Also measured cause of death, CAUSEDTH
+
+# Make sure data arranged by subject id and age days
+  zvit %>% arrange(SUBJID, AGEDAYS)
   
 # Check if age of death is recorded multiple times for each child who died
   zvit %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
@@ -430,16 +470,20 @@ ZVITAMBO
   zvit <- zvit %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
   
 # create indicator for last observation for a child using age 
-  zvit <- zvit %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
+  zvit <- zvit %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge)
+  
+# Create flag for the last time point for each subject if the child died 
+  zvit$death <- NA
+  zvit <- zvit %>% group_by(SUBJID) %>% mutate(death = any(!is.na(AGEDTH)) & last==T)  
 
 # Count total number of reported deaths using last age of the child
-  sum(table(zvit$AGEDTH[zvit$last==T])) # 1067 death
-  table(zvit$DEAD[zvit$last==T]) # 1123 deaths
+  table(zvit$death==T) # 1067 death
+  table(zvit$DEAD[zvit$death==T]) # 1123 deaths
   
   # DEAD and AGEDTH don't match!
   
   summary(zvit$AGEDTH)
-  hist(zvit$AGEDTH[zvit$last==T])    
+  hist(zvit$AGEDTH[zvit$death==T])    
   
 # Check that the age of death is later than the oldest measurement on each child
   zvit <- zvit %>% group_by(SUBJID) %>% mutate(deathErrorFlag= AGEDTH < maxAge & last==TRUE & !is.na(AGEDTH))
@@ -476,6 +520,9 @@ ZVITAMBO
 
 PROVIDE
 ```{r}
+# Make sure data arranged by subject id and age days
+  provide %>% arrange(SUBJID, AGEDAYS)
+
 # Check if age of death is recorded multiple times for each child who died
   provide %>% group_by(SUBJID) %>% filter(!is.na(AGEDTH)) %>% summarize(N=n()) %>% print(n=40)
   
@@ -485,14 +532,18 @@ PROVIDE
   provide <- provide %>% group_by(SUBJID) %>% mutate(maxAge=max(AGEDAYS))
   
 # create indicator for last observation for a child using age 
-  provide <- provide %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge, TRUE, FALSE)
+  provide <- provide %>% group_by(SUBJID) %>% mutate(last = AGEDAYS==maxAge)
+  
+# Create flag for the last time point for each subject if the child died 
+  provide$death <- NA
+  provide <- provide %>% group_by(SUBJID) %>% mutate(death = any(!is.na(AGEDTH)) & last==T)  
   
 # Count total number of reported deaths using last age of the child
-  sum(table(provide$AGEDTH[provide$last==T])) # 5 death
-  table(provide$DEAD[provide$last==T]) # 5 deaths
+  table(provide$death==T) # 5 death
+  table(provide$DEAD[provide$death==T]) # 5 deaths
   
   summary(provide$AGEDTH)
-  hist(provide$AGEDTH[provide$last==T])    
+  hist(provide$AGEDTH[provide$death==T])    
    
   
   # Check that the age of death is later than the oldest measurement on each child
