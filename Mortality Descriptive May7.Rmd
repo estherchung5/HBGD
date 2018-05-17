@@ -121,7 +121,6 @@ JiVitA-3
 # Create flag for the last time point for each subject if the child died 
   jvit3$death <- NA
   jvit3 <- jvit3 %>% group_by(SUBJID) %>% mutate(death = any(!is.na(AGEDTH)) & last==T)    
-  
 # Count total number of reported deaths using last age of the child
   table(jvit3$death==T) # 1226 deaths
   table(jvit3$DEAD[jvit3$death==T]) # 0 deaths
